@@ -1,0 +1,24 @@
+# Config file for transforming MMRRC genotype nodes
+# See additional/optional config parameters at https://koza.monarchinitiative.org/Ingests/source_config/
+
+name: "mmrrc_genotype"
+
+reader:
+  format: "csv"
+  files:
+    - "../../data/processed/genotypes.csv"
+  delimiter: ","
+
+transform:
+  code: "./genotypes.py"
+
+writer:
+  node_properties:
+    - id
+    - name
+    - category
+    - xref
+    - in_taxon
+    - in_taxon_label
+    - provided_by
+  min_node_count: 69000  # Expecting ~69,025 genotypes

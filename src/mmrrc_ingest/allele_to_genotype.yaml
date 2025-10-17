@@ -1,0 +1,26 @@
+# Config file for transforming MMRRC allele-to-genotype associations
+# See additional/optional config parameters at https://koza.monarchinitiative.org/Ingests/source_config/
+
+name: "mmrrc_allele_to_genotype"
+
+reader:
+  format: "csv"
+  files:
+    - "../../data/processed/allele_to_genotype.csv"
+  delimiter: ","
+
+transform:
+  code: "./allele_to_genotype.py"
+
+writer:
+  edge_properties:
+    - id
+    - subject
+    - predicate
+    - object
+    - category
+    - knowledge_level
+    - agent_type
+    - primary_knowledge_source
+    - aggregator_knowledge_source
+  min_edge_count: 43000  # Expecting ~43,870 associations

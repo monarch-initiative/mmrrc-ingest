@@ -1,0 +1,69 @@
+# Config file for transforming MMRRC data
+# See additional/optional config parameters at https://koza.monarchinitiative.org/Ingests/source_config/
+
+# Transform 1: Genotype Nodes
+genotypes:
+  name: "mmrrc_genotypes"
+  metadata: "./metadata.yaml"
+  format: "csv"
+  files:
+    - "../../data/processed/genotypes.csv"
+  delimiter: ","
+  transform_code: "./genotypes.py"
+
+  node_properties:
+    - id
+    - name
+    - category
+    - xref
+    - in_taxon
+    - in_taxon_label
+    - provided_by
+
+  min_node_count: 69000  # Expecting ~69,025 genotypes
+
+# Transform 2: Genotype-to-Phenotype Associations
+genotype_to_phenotype:
+  name: "mmrrc_genotype_to_phenotype"
+  metadata: "./metadata.yaml"
+  format: "csv"
+  files:
+    - "../../data/processed/genotype_to_phenotype.csv"
+  delimiter: ","
+  transform_code: "./genotype_to_phenotype.py"
+
+  edge_properties:
+    - id
+    - subject
+    - predicate
+    - object
+    - category
+    - knowledge_level
+    - agent_type
+    - primary_knowledge_source
+    - aggregator_knowledge_source
+
+  min_edge_count: 45000  # Expecting ~46,006 associations
+
+# Transform 3: Allele-to-Genotype Associations
+allele_to_genotype:
+  name: "mmrrc_allele_to_genotype"
+  metadata: "./metadata.yaml"
+  format: "csv"
+  files:
+    - "../../data/processed/allele_to_genotype.csv"
+  delimiter: ","
+  transform_code: "./allele_to_genotype.py"
+
+  edge_properties:
+    - id
+    - subject
+    - predicate
+    - object
+    - category
+    - knowledge_level
+    - agent_type
+    - primary_knowledge_source
+    - aggregator_knowledge_source
+
+  min_edge_count: 43000  # Expecting ~43,870 associations
