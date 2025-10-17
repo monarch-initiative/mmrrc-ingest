@@ -1,0 +1,47 @@
+site_name: MMRRC Ingest
+site_description: Monarch Initiative data ingest for MMRRC (Mutant Mouse Resource & Research Centers) - capturing allele to genotype associations, genotype nodes, and genotype to phenotype associations
+site_author: Monarch Initiative
+site_url: https://monarch-initiative.github.io/mmrrc-ingest
+repo_url: https://github.com/monarch-initiative/mmrrc-ingest
+repo_name: monarch-initiative/mmrrc-ingest
+
+nav:
+  - Home: index.md
+  - Data Sources: sources.md
+  - Transform: transform.md
+  - API Documentation: api.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+  - macros
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - toc:
+      permalink: true
