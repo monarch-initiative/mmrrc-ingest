@@ -18,6 +18,7 @@ def discover_output_files(output_dir: Path = Path("output")) -> List[Tuple[str, 
 
     Returns:
         List of tuples (ingest_name, nodes_file, edges_file)
+
     """
     if not output_dir.exists():
         print(f"Output directory {output_dir} does not exist")
@@ -55,16 +56,16 @@ def generate_nodes_report(ingest_name: str, nodes_file: Path | None) -> None:
     if not nodes_file or not nodes_file.exists():
         print(f"Nodes file {nodes_file} does not exist, skipping")
         return
-    
+
     output_file = nodes_file.parent / f"{ingest_name}_nodes_report.tsv"
-    
+
     query = f"""
     SELECT category, split_part(id, ':', 1) as prefix, count(*)
     FROM '{nodes_file}'
     GROUP BY all
     ORDER BY all
     """
-    
+
     try:
         duckdb.sql(f"copy ({query}) to '{output_file}' (header, delimiter '\\t')")
         print(f"Generated nodes report: {output_file}")
@@ -77,9 +78,9 @@ def generate_edges_report(ingest_name: str, edges_file: Path | None) -> None:
     if not edges_file or not edges_file.exists():
         print(f"Edges file {edges_file} does not exist, skipping")
         return
-    
+
     output_file = edges_file.parent / f"{ingest_name}_edges_report.tsv"
-    
+
     query = f"""
     SELECT category, split_part(subject, ':', 1) as subject_prefix, predicate,
     split_part(object, ':', 1) as object_prefix, count(*)
@@ -87,7 +88,7 @@ def generate_edges_report(ingest_name: str, edges_file: Path | None) -> None:
     GROUP BY all
     ORDER BY all
     """
-    
+
     try:
         duckdb.sql(f"copy ({query}) to '{output_file}' (header, delimiter '\\t')")
         print(f"Generated edges report: {output_file}")
@@ -98,24 +99,24 @@ def generate_edges_report(ingest_name: str, edges_file: Path | None) -> None:
 def main():
     """Main entry point for report generation."""
     output_dir = Path("output")
-    
+
     if len(sys.argv) > 1:
         output_dir = Path(sys.argv[1])
-    
+
     print(f"Discovering output files in {output_dir}")
     discovered_files = discover_output_files(output_dir)
-    
+
     if not discovered_files:
         print("No transform output files found")
         return
-    
+
     print(f"Found {len(discovered_files)} transform output(s)")
-    
+
     for ingest_name, nodes_file, edges_file in discovered_files:
         print(f"Processing {ingest_name}...")
         generate_nodes_report(ingest_name, nodes_file)
         generate_edges_report(ingest_name, edges_file)
-    
+
     print("Report generation complete")
 
 

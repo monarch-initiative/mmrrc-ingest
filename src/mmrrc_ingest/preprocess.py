@@ -1,4 +1,5 @@
-"""Preprocessing script for MMRRC catalog data using DuckDB.
+"""
+Preprocessing script for MMRRC catalog data using DuckDB.
 
 This script normalizes the denormalized MMRRC catalog CSV into three separate files:
 1. genotypes.csv - One row per unique genotype
@@ -6,17 +7,17 @@ This script normalizes the denormalized MMRRC catalog CSV into three separate fi
 3. allele_to_genotype.csv - One row per allele-genotype association
 """
 
-import duckdb
 from pathlib import Path
+
+import duckdb
 
 
 def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
     """Preprocess MMRRC catalog data into normalized CSV files using DuckDB."""
-
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Reading {input_file} into DuckDB...")
-    con = duckdb.connect(':memory:')
+    con = duckdb.connect(":memory:")
 
     # Load the CSV file, treating all columns as VARCHAR to avoid type issues
     con.execute(f"""
@@ -31,7 +32,7 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
 
     # 1. Create genotypes.csv - one row per unique STRAIN/STOCK_ID
     print("\nCreating genotypes.csv...")
-    genotypes_file = output_dir / 'genotypes.csv'
+    genotypes_file = output_dir / "genotypes.csv"
 
     con.execute(f"""
         COPY (
@@ -60,7 +61,7 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
 
     # 2. Create allele_to_genotype.csv - one row per allele-genotype pair
     print("\nCreating allele_to_genotype.csv...")
-    allele_genotypes_file = output_dir / 'allele_to_genotype.csv'
+    allele_genotypes_file = output_dir / "allele_to_genotype.csv"
 
     con.execute(f"""
         COPY (
@@ -84,7 +85,7 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
 
     # 3. Create genotype_to_phenotype.csv - explode MP IDs from MPT_IDS field
     print("\nCreating genotype_to_phenotype.csv...")
-    genotype_phenotypes_file = output_dir / 'genotype_to_phenotype.csv'
+    genotype_phenotypes_file = output_dir / "genotype_to_phenotype.csv"
 
     # First, create a table with exploded MP IDs
     con.execute("""
@@ -127,7 +128,7 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
     con.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     if len(sys.argv) != 3:

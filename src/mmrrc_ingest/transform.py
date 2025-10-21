@@ -2,15 +2,15 @@ import uuid  # For generating UUIDs for associations
 from typing import Any
 
 import koza
+from biolink_model.datamodel.pydanticmodel_v2 import Association, Entity
 from koza import KozaTransform
-from biolink_model.datamodel.pydanticmodel_v2 import Entity, Association
 
 
 @koza.transform_record()
 def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list[Entity | Association]:
     # Code to transform each row of data
     # For more information, see https://koza.monarchinitiative.org/Ingests/transform
-    
+
     entity_a = Entity(
         id=f"XMPL:00000{row['example_column_1'].split('_')[-1]}",
         name=row["example_column_1"],
@@ -32,5 +32,5 @@ def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list
         knowledge_level="not_provided",
         agent_type="not_provided",
     )
-    
+
     return [entity_a, entity_b, association]

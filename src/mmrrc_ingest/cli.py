@@ -1,14 +1,14 @@
 """Command line interface for data ingest."""
+
 import logging
-import sys
 from pathlib import Path
 from typing import Optional, Tuple
 
-from kghub_downloader.download_utils import download_from_yaml
-from koza.runner import KozaRunner
-from koza.model.formats import OutputFormat
-from loguru import logger
 import typer
+from kghub_downloader.download_utils import download_from_yaml
+from koza.model.formats import OutputFormat
+from koza.runner import KozaRunner
+from loguru import logger
 
 app = typer.Typer()
 logging_logger = logging.getLogger(__name__)
@@ -19,30 +19,32 @@ def get_project_info() -> Tuple[str, str]:
     try:
         # Try to read from pyproject.toml first
         import tomllib
+
         project_root = Path(__file__).parent.parent.parent
         pyproject_path = project_root / "pyproject.toml"
-        
+
         if pyproject_path.exists():
-            with open(pyproject_path, 'rb') as f:
+            with open(pyproject_path, "rb") as f:
                 config = tomllib.load(f)
-                name = config.get('project', {}).get('name', 'data-ingest')
-                description = config.get('project', {}).get('description', 'Data ingest project')
+                name = config.get("project", {}).get("name", "data-ingest")
+                description = config.get("project", {}).get("description", "Data ingest project")
                 return name, description
     except Exception:
         pass
-    
+
     try:
         # Fallback to package metadata
         import importlib.metadata
+
         package_name = __package__ or Path(__file__).parent.name
         metadata = importlib.metadata.metadata(package_name)
-        name = metadata['Name'] if 'Name' in metadata else package_name
-        description = metadata['Summary'] if 'Summary' in metadata else 'Data ingest project'
+        name = metadata["Name"] if "Name" in metadata else package_name
+        description = metadata["Summary"] if "Summary" in metadata else "Data ingest project"
         return name, description
     except Exception:
         # Final fallback
         package_name = Path(__file__).parent.name
-        return package_name, 'Data ingest project'
+        return package_name, "Data ingest project"
 
 
 def discover_config_files() -> Tuple[Optional[Path], Optional[Path]]:
@@ -50,10 +52,10 @@ def discover_config_files() -> Tuple[Optional[Path], Optional[Path]]:
     package_dir = Path(__file__).parent
     download_config = package_dir / "download.yaml"
     transform_config = package_dir / "transform.yaml"
-    
+
     return (
         download_config if download_config.exists() else None,
-        transform_config if transform_config.exists() else None
+        transform_config if transform_config.exists() else None,
     )
 
 
@@ -65,11 +67,12 @@ def callback(
     if version:
         try:
             from importlib.metadata import version as get_version
+
             package_name = __package__ or Path(__file__).parent.name
             version_str = get_version(package_name)
         except Exception:
             version_str = "unknown"
-        
+
         project_name, _ = get_project_info()
         typer.echo(f"{project_name} version: {version_str}")
         raise typer.Exit()
@@ -80,13 +83,14 @@ def download(force: bool = typer.Option(False, help="Force download of data, eve
     """Download data for the ingest."""
     project_name, _ = get_project_info()
     typer.echo(f"Downloading data for {project_name}...")
-    
+
     download_config, _ = discover_config_files()
     if not download_config:
         typer.echo("Error: download.yaml not found", err=True)
         raise typer.Exit(1)
-    
+
     from kghub_downloader.model import DownloadOptions
+
     options = DownloadOptions(ignore_cache=force) if force else None
     download_from_yaml(yaml_file=str(download_config), output_dir=".", download_options=options)
 
@@ -103,22 +107,22 @@ def transform(
     """Run the Koza transform."""
     project_name, _ = get_project_info()
     typer.echo(f"Transforming data for {project_name}...")
-    
+
     _, transform_config = discover_config_files()
     if not transform_config:
         typer.echo("Error: transform.yaml not found", err=True)
         raise typer.Exit(1)
-    
+
     output_path = Path(output_dir)
     if output_path.exists() and not output_path.is_dir():
         raise NotADirectoryError(f"{output_dir} is not a directory")
     elif not output_path.exists():
         output_path.mkdir(parents=True)
-    
+
     if not quiet:
         logger.remove()
         logger.add(lambda msg: typer.echo(msg, nl=False), colorize=True)
-    
+
     # Support for multiple transforms - if transform_name is specified,
     # we could extend this to run specific transforms from a multi-transform config
     config, runner = KozaRunner.from_config_file(
@@ -128,7 +132,7 @@ def transform(
         row_limit=row_limit,
         show_progress=show_progress,
     )
-    
+
     logger.info(f"Running transform for {config.name} with output to `{output_dir}`")
     runner.run()
     logger.info(f"Finished transform for {config.name}")
@@ -141,14 +145,15 @@ def list_transforms() -> None:
     if not transform_config:
         typer.echo("Error: transform.yaml not found", err=True)
         raise typer.Exit(1)
-    
+
     # For now, just show the single transform
     # In future, this could parse transform.yaml and show multiple transforms
     import yaml
+
     with open(transform_config) as f:
         config = yaml.safe_load(f)
-    
-    transform_name = config.get('name', 'unnamed')
+
+    transform_name = config.get("name", "unnamed")
     typer.echo(f"Available transforms:")
     typer.echo(f"  - {transform_name}")
 

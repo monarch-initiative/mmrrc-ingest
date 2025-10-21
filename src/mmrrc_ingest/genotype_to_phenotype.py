@@ -5,15 +5,17 @@ Reads preprocessed genotype_to_phenotype.csv and creates GenotypeToPhenotypicFea
 """
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import koza
-from koza import KozaTransform
 from biolink_model.datamodel.pydanticmodel_v2 import GenotypeToPhenotypicFeatureAssociation
+from koza import KozaTransform
 
 
 @koza.transform_record()
-def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list[GenotypeToPhenotypicFeatureAssociation]:
+def transform_record(
+    koza_transform: KozaTransform, row: dict[str, Any]
+) -> list[GenotypeToPhenotypicFeatureAssociation]:
     """
     Transform a genotype-phenotype row into a GenotypeToPhenotypicFeatureAssociation.
 
@@ -23,24 +25,25 @@ def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list
 
     Returns:
         list[GenotypeToPhenotypicFeatureAssociation]: A list containing a biolink association
+
     """
     # Skip rows without required IDs
-    if not row.get('strain_id') or not row.get('phenotype_id'):
+    if not row.get("strain_id") or not row.get("phenotype_id"):
         return []
 
     # Skip rows with empty phenotype labels (failed extraction)
-    if not row.get('phenotype_label') or row['phenotype_label'].strip() == '':
+    if not row.get("phenotype_label") or row["phenotype_label"].strip() == "":
         return []
 
     association = GenotypeToPhenotypicFeatureAssociation(
         id=f"uuid:{uuid.uuid4()}",
-        subject=row['strain_id'],
-        predicate='biolink:has_phenotype',
-        object=row['phenotype_id'],
-        aggregator_knowledge_source=['infores:monarchinitiative'],
-        primary_knowledge_source='infores:mmrrc',
-        knowledge_level='knowledge_assertion',
-        agent_type='manual_agent'
+        subject=row["strain_id"],
+        predicate="biolink:has_phenotype",
+        object=row["phenotype_id"],
+        aggregator_knowledge_source=["infores:monarchinitiative"],
+        primary_knowledge_source="infores:mmrrc",
+        knowledge_level="knowledge_assertion",
+        agent_type="manual_agent",
     )
 
     return [association]

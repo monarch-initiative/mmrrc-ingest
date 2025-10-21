@@ -5,11 +5,11 @@ Reads preprocessed allele_to_genotype.csv and creates GenotypeToVariantAssociati
 """
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import koza
-from koza import KozaTransform
 from biolink_model.datamodel.pydanticmodel_v2 import GenotypeToVariantAssociation
+from koza import KozaTransform
 
 
 @koza.transform_record()
@@ -23,20 +23,21 @@ def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list
 
     Returns:
         list[GenotypeToVariantAssociation]: A list containing a biolink association
+
     """
     # Skip rows without required IDs
-    if not row.get('allele_id') or not row.get('strain_id'):
+    if not row.get("allele_id") or not row.get("strain_id"):
         return []
 
     association = GenotypeToVariantAssociation(
         id=f"uuid:{uuid.uuid4()}",
-        subject=row['strain_id'],
-        predicate='biolink:has_sequence_variant',
-        object=row['allele_id'],
-        aggregator_knowledge_source=['infores:monarchinitiative'],
-        primary_knowledge_source='infores:mmrrc',
-        knowledge_level='knowledge_assertion',
-        agent_type='manual_agent'
+        subject=row["strain_id"],
+        predicate="biolink:has_sequence_variant",
+        object=row["allele_id"],
+        aggregator_knowledge_source=["infores:monarchinitiative"],
+        primary_knowledge_source="infores:mmrrc",
+        knowledge_level="knowledge_assertion",
+        agent_type="manual_agent",
     )
 
     return [association]
