@@ -25,7 +25,8 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
     """)
 
     # Get row count
-    total_rows = con.execute("SELECT COUNT(*) FROM mmrrc").fetchone()[0]
+    result = con.execute("SELECT COUNT(*) FROM mmrrc").fetchone()
+    total_rows = result[0] if result else 0
     print(f"Loaded {total_rows} rows")
 
     # 1. Create genotypes.csv - one row per unique STRAIN/STOCK_ID
@@ -53,7 +54,8 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
         ) TO '{genotypes_file}' (HEADER, DELIMITER ',')
     """)
 
-    genotype_count = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotypes_file}')").fetchone()[0]
+    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotypes_file}')").fetchone()
+    genotype_count = result[0] if result else 0
     print(f"  Wrote {genotype_count} unique genotypes")
 
     # 2. Create allele_to_genotype.csv - one row per allele-genotype pair
@@ -76,7 +78,8 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
         ) TO '{allele_genotypes_file}' (HEADER, DELIMITER ',')
     """)
 
-    allele_count = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{allele_genotypes_file}')").fetchone()[0]
+    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{allele_genotypes_file}')").fetchone()
+    allele_count = result[0] if result else 0
     print(f"  Wrote {allele_count} allele-genotype associations")
 
     # 3. Create genotype_to_phenotype.csv - explode MP IDs from MPT_IDS field
@@ -114,7 +117,8 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
         ) TO '{genotype_phenotypes_file}' (HEADER, DELIMITER ',')
     """)
 
-    phenotype_count = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotype_phenotypes_file}')").fetchone()[0]
+    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotype_phenotypes_file}')").fetchone()
+    phenotype_count = result[0] if result else 0
     print(f"  Wrote {phenotype_count} genotype-phenotype associations")
 
     print("\nPreprocessing complete!")

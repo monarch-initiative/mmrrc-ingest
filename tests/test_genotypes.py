@@ -39,8 +39,8 @@ def genotype_entity(genotype_row: dict[str, str]) -> Genotype:
         writer=PassthroughWriter(),
         extra_fields={}
     )
-    result = transform_record(koza_transform, genotype_row)  # type: ignore
-    return result[0] if result else None  # type: ignore
+    result = transform_record(koza_transform, genotype_row)
+    return result[0] if result else None
 
 
 def test_genotype_id(genotype_entity: Genotype) -> None:

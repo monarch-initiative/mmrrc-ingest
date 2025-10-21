@@ -33,8 +33,8 @@ def allele_genotype_association(allele_genotype_row: dict[str, str]) -> Genotype
         writer=PassthroughWriter(),
         extra_fields={}
     )
-    result = transform_record(koza_transform, allele_genotype_row)  # type: ignore
-    return result[0] if result else None  # type: ignore
+    result = transform_record(koza_transform, allele_genotype_row)
+    return result[0] if result else None
 
 
 def test_association_subject(allele_genotype_association: GenotypeToVariantAssociation) -> None:

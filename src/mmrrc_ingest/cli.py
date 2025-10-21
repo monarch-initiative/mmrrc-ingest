@@ -36,8 +36,8 @@ def get_project_info() -> Tuple[str, str]:
         import importlib.metadata
         package_name = __package__ or Path(__file__).parent.name
         metadata = importlib.metadata.metadata(package_name)
-        name = metadata.get('Name', package_name)
-        description = metadata.get('Summary', 'Data ingest project')
+        name = metadata['Name'] if 'Name' in metadata else package_name
+        description = metadata['Summary'] if 'Summary' in metadata else 'Data ingest project'
         return name, description
     except Exception:
         # Final fallback
@@ -60,7 +60,7 @@ def discover_config_files() -> Tuple[Optional[Path], Optional[Path]]:
 @app.callback()
 def callback(
     version: bool = typer.Option(False, "--version", is_eager=True),
-):
+) -> None:
     """Data ingest CLI."""
     if version:
         try:
@@ -76,7 +76,7 @@ def callback(
 
 
 @app.command()
-def download(force: bool = typer.Option(False, help="Force download of data, even if it exists")):
+def download(force: bool = typer.Option(False, help="Force download of data, even if it exists")) -> None:
     """Download data for the ingest."""
     project_name, _ = get_project_info()
     typer.echo(f"Downloading data for {project_name}...")
@@ -99,7 +99,7 @@ def transform(
     show_progress: bool = typer.Option(False, help="Display progress of transform"),
     quiet: bool = typer.Option(False, help="Disable log output"),
     transform_name: Optional[str] = typer.Option(None, help="Specific transform to run (for multi-transform projects)"),
-):
+) -> None:
     """Run the Koza transform."""
     project_name, _ = get_project_info()
     typer.echo(f"Transforming data for {project_name}...")
@@ -135,7 +135,7 @@ def transform(
 
 
 @app.command()
-def list_transforms():
+def list_transforms() -> None:
     """List available transforms (for future multi-transform support)."""
     _, transform_config = discover_config_files()
     if not transform_config:

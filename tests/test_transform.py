@@ -18,7 +18,7 @@ from koza.io.writer.writer import KozaWriter
 from koza.runner import KozaRunner, KozaTransformHooks
 
 
-def discover_transform_module():
+def discover_transform_module() -> Any:
     """Dynamically discover and import the transform module."""
     # Find the src directory relative to this test file
     test_dir = Path(__file__).parent
@@ -62,13 +62,13 @@ transform_record = discover_transform_module()
 class MockWriter(KozaWriter):
     """Mock writer for testing that captures written entities."""
     
-    def __init__(self):
-        self.items = []
+    def __init__(self) -> None:
+        self.items: List[Any] = []
 
-    def write(self, entities):
+    def write(self, entities: List[Any]) -> None:
         self.items += entities
 
-    def finalize(self):
+    def finalize(self) -> None:
         pass
 
 
@@ -101,7 +101,7 @@ def example_list_of_rows() -> List[Dict[str, Any]]:
 
 
 @pytest.fixture
-def mock_transform(example_row) -> List[Any]:
+def mock_transform(example_row: Dict[str, Any]) -> List[Any]:
     """Run transform on a single row and return results."""
     writer = MockWriter()
     
@@ -115,7 +115,7 @@ def mock_transform(example_row) -> List[Any]:
 
 
 @pytest.fixture
-def mock_transform_multiple_rows(example_list_of_rows) -> List[Any]:
+def mock_transform_multiple_rows(example_list_of_rows: List[Dict[str, Any]]) -> List[Any]:
     """Run transform on multiple rows and return concatenated results."""
     writer = MockWriter()
     
@@ -129,7 +129,7 @@ def mock_transform_multiple_rows(example_list_of_rows) -> List[Any]:
 
 
 # Test functions
-def test_single_row_transform(mock_transform):
+def test_single_row_transform(mock_transform: List[Any]) -> None:
     """Test transformation of a single row produces expected entities."""
     assert len(mock_transform) == 3
     
@@ -148,7 +148,7 @@ def test_single_row_transform(mock_transform):
     assert association.predicate == "biolink:related_to"
 
 
-def test_multiple_rows_transform(mock_transform_multiple_rows):
+def test_multiple_rows_transform(mock_transform_multiple_rows: List[Any]) -> None:
     """Test transformation of multiple rows produces expected number of entities."""
     assert len(mock_transform_multiple_rows) == 6  # 3 entities per row × 2 rows
     
@@ -166,7 +166,7 @@ def test_multiple_rows_transform(mock_transform_multiple_rows):
     assert association.predicate == "biolink:related_to"
 
 
-def test_transform_discovery():
+def test_transform_discovery() -> None:
     """Test that transform module discovery works correctly."""
     # This test ensures our dynamic discovery is working
     assert transform_record is not None
@@ -174,7 +174,7 @@ def test_transform_discovery():
 
 
 # Additional test for future multi-transform support
-def test_discover_multiple_transforms():
+def test_discover_multiple_transforms() -> None:
     """Test discovery when multiple transform directories exist (future feature)."""
     # This test is a placeholder for when we support multiple transforms
     # For now, it just verifies we can discover at least one transform

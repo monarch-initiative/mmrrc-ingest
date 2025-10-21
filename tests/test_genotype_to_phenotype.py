@@ -30,8 +30,8 @@ def genotype_phenotype_association(genotype_phenotype_row: dict[str, str]) -> Ge
         writer=PassthroughWriter(),
         extra_fields={}
     )
-    result = transform_record(koza_transform, genotype_phenotype_row)  # type: ignore
-    return result[0] if result else None  # type: ignore
+    result = transform_record(koza_transform, genotype_phenotype_row)
+    return result[0] if result else None
 
 
 def test_association_subject(genotype_phenotype_association: GenotypeToPhenotypicFeatureAssociation) -> None:
