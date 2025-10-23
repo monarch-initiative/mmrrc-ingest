@@ -67,17 +67,10 @@ format:
 download:
   uv run mmrrc-ingest download
 
-# Preprocess downloaded data
-[group('ingest operations')]
-preprocess: download
-  uv run python src/mmrrc_ingest/preprocess.py data/mmrrc_catalog_data.csv data/processed
-
 # Run ingest transformation
 [group('ingest operations')]
-transform: preprocess
-  uv run koza transform src/mmrrc_ingest/genotype.yaml --output-dir output --output-format tsv
-  uv run koza transform src/mmrrc_ingest/genotype_to_phenotype.yaml --output-dir output --output-format tsv
-  uv run koza transform src/mmrrc_ingest/allele_to_genotype.yaml --output-dir output --output-format tsv
+transform: download
+  uv run mmrrc-ingest transform
   uv run python scripts/generate-report.py
 
 # Generate documentation
