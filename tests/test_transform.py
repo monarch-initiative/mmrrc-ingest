@@ -24,30 +24,27 @@ def discover_transform_module() -> Any:
     test_dir = Path(__file__).parent
     project_root = test_dir.parent
     src_dir = project_root / "src"
-    
+
     if not src_dir.exists():
         raise ImportError("Could not find src directory")
-    
+
     # Find project directories that contain transform.py
-    project_dirs = [
-        d for d in src_dir.iterdir() 
-        if d.is_dir() and (d / "transform.py").exists()
-    ]
-    
+    project_dirs = [d for d in src_dir.iterdir() if d.is_dir() and (d / "transform.py").exists()]
+
     if not project_dirs:
         raise ImportError("Could not find any project directory with transform.py")
-    
+
     if len(project_dirs) > 1:
         # For multiple transforms, we could extend this to handle specific ones
         # For now, just use the first one found
         pass
-    
+
     project_name = project_dirs[0].name
-    
+
     # Add src to path and import the transform module
     if str(src_dir) not in sys.path:
         sys.path.insert(0, str(src_dir))
-    
+
     try:
         transform_module = __import__(f"{project_name}.transform", fromlist=["transform_record"])
         return transform_module.transform_record
@@ -78,7 +75,7 @@ def example_row() -> Dict[str, Any]:
     """Example row data for testing single record transformation."""
     return {
         "example_column_1": "entity_1",
-        "example_column_2": "entity_6", 
+        "example_column_2": "entity_6",
         "example_column_3": "biolink:related_to",
     }
 
@@ -93,7 +90,7 @@ def example_list_of_rows() -> List[Dict[str, Any]]:
             "example_column_3": "biolink:related_to",
         },
         {
-            "example_column_1": "entity_2", 
+            "example_column_1": "entity_2",
             "example_column_2": "entity_7",
             "example_column_3": "biolink:related_to",
         },
@@ -104,11 +101,9 @@ def example_list_of_rows() -> List[Dict[str, Any]]:
 def mock_transform(example_row) -> List[Any]:
     """Run transform on a single row and return results."""
     writer = MockWriter()
-    
+
     runner = KozaRunner(
-        data=iter([example_row]),
-        writer=writer,
-        hooks=KozaTransformHooks(transform_record=[transform_record])
+        data=iter([example_row]), writer=writer, hooks=KozaTransformHooks(transform_record=[transform_record])
     )
     runner.run()
     return writer.items
@@ -118,11 +113,9 @@ def mock_transform(example_row) -> List[Any]:
 def mock_transform_multiple_rows(example_list_of_rows) -> List[Any]:
     """Run transform on multiple rows and return concatenated results."""
     writer = MockWriter()
-    
+
     runner = KozaRunner(
-        data=iter(example_list_of_rows),
-        writer=writer,
-        hooks=KozaTransformHooks(transform_record=[transform_record])
+        data=iter(example_list_of_rows), writer=writer, hooks=KozaTransformHooks(transform_record=[transform_record])
     )
     runner.run()
     return writer.items
@@ -132,16 +125,16 @@ def mock_transform_multiple_rows(example_list_of_rows) -> List[Any]:
 def test_single_row_transform(mock_transform: List[Any]) -> None:
     """Test transformation of a single row produces expected entities."""
     assert len(mock_transform) == 3
-    
+
     # Check entity types
     entity_a = mock_transform[0]
     entity_b = mock_transform[1]
     association = mock_transform[2]
-    
+
     assert isinstance(entity_a, Entity)
     assert isinstance(entity_b, Entity)
     assert isinstance(association, Association)
-    
+
     # Check entity properties
     assert entity_a.name == "entity_1"
     assert entity_b.name == "entity_6"
@@ -151,16 +144,16 @@ def test_single_row_transform(mock_transform: List[Any]) -> None:
 def test_multiple_rows_transform(mock_transform_multiple_rows: List[Any]) -> None:
     """Test transformation of multiple rows produces expected number of entities."""
     assert len(mock_transform_multiple_rows) == 6  # 3 entities per row × 2 rows
-    
+
     # Check first row entities
     entity_a = mock_transform_multiple_rows[0]
     entity_b = mock_transform_multiple_rows[1]
     association = mock_transform_multiple_rows[2]
-    
+
     assert isinstance(entity_a, Entity)
     assert isinstance(entity_b, Entity)
     assert isinstance(association, Association)
-    
+
     assert entity_a.name == "entity_1"
     assert entity_b.name == "entity_6"
     assert association.predicate == "biolink:related_to"
@@ -181,10 +174,7 @@ def test_discover_multiple_transforms() -> None:
     test_dir = Path(__file__).parent
     project_root = test_dir.parent
     src_dir = project_root / "src"
-    
+
     if src_dir.exists():
-        project_dirs = [
-            d for d in src_dir.iterdir() 
-            if d.is_dir() and (d / "transform.py").exists()
-        ]
+        project_dirs = [d for d in src_dir.iterdir() if d.is_dir() and (d / "transform.py").exists()]
         assert len(project_dirs) >= 1, "Should find at least one transform directory"

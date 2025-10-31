@@ -23,7 +23,7 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
     con.execute(f"""
         CREATE TABLE mmrrc AS
         SELECT * FROM read_csv_auto('{input_file}', all_varchar=true)
-    """)
+    """)  # noqa: S608
 
     # Get row count
     result = con.execute("SELECT COUNT(*) FROM mmrrc").fetchone()
@@ -53,9 +53,9 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
             GROUP BY "STRAIN/STOCK_ID"
             ORDER BY "STRAIN/STOCK_ID"
         ) TO '{genotypes_file}' (HEADER, DELIMITER ',')
-    """)
+    """)  # noqa: S608
 
-    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotypes_file}')").fetchone()
+    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotypes_file}')").fetchone()  # noqa: S608
     genotype_count = result[0] if result else 0
     print(f"  Wrote {genotype_count} unique genotypes")
 
@@ -77,9 +77,9 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
               AND MGI_ALLELE_ACCESSION_ID != ''
             ORDER BY "STRAIN/STOCK_ID", MGI_ALLELE_ACCESSION_ID
         ) TO '{allele_genotypes_file}' (HEADER, DELIMITER ',')
-    """)
+    """)  # noqa: S608
 
-    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{allele_genotypes_file}')").fetchone()
+    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{allele_genotypes_file}')").fetchone()  # noqa: S608
     allele_count = result[0] if result else 0
     print(f"  Wrote {allele_count} allele-genotype associations")
 
@@ -116,9 +116,9 @@ def preprocess_mmrrc(input_file: Path, output_dir: Path) -> None:
             WHERE mp_id IS NOT NULL
             ORDER BY strain_id, mp_id
         ) TO '{genotype_phenotypes_file}' (HEADER, DELIMITER ',')
-    """)
+    """)  # noqa: S608
 
-    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotype_phenotypes_file}')").fetchone()
+    result = con.execute(f"SELECT COUNT(*) FROM read_csv_auto('{genotype_phenotypes_file}')").fetchone()  # noqa: S608
     phenotype_count = result[0] if result else 0
     print(f"  Wrote {phenotype_count} genotype-phenotype associations")
 
