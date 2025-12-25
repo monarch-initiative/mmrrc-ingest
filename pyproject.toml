@@ -23,7 +23,7 @@ dependencies = [
   "biolink-model>=4.2.0",
   "duckdb>=0.10.2",
   "loguru",
-  "click>=8.1.0,<8.2.0",
+  "click>=8.1.0,<8.4.0",
   "rich>=13.0.0",
 ]
 
