@@ -9,7 +9,7 @@ from biolink_model.datamodel.pydanticmodel_v2 import GenotypeToPhenotypicFeature
 from koza import KozaTransform
 from koza.io.writer.passthrough_writer import PassthroughWriter
 
-from mmrrc_ingest.genotype_to_phenotype import transform_record
+from genotype_to_phenotype import transform_record
 
 
 @pytest.fixture

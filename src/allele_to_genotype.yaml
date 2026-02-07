@@ -6,7 +6,7 @@ name: "mmrrc_allele_to_genotype"
 reader:
   format: "csv"
   files:
-    - "../../data/processed/allele_to_genotype.csv"
+    - "../data/processed/allele_to_genotype.csv"
   delimiter: ","
 
 transform:

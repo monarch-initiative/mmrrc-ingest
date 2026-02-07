@@ -9,7 +9,7 @@ from biolink_model.datamodel.pydanticmodel_v2 import GenotypeToVariantAssociatio
 from koza import KozaTransform
 from koza.io.writer.passthrough_writer import PassthroughWriter
 
-from mmrrc_ingest.allele_to_genotype import transform_record
+from allele_to_genotype import transform_record
 
 
 @pytest.fixture
