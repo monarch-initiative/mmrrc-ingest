@@ -10,41 +10,23 @@ The MMRRC is a national resource that archives and distributes genetically engin
 
 **Download**: https://www.mmrrc.org/about/mmrrc_catalog_data.csv
 
-The catalog CSV file contains 588,205 rows representing denormalized data about mouse strains. The data structure has one-to-many relationships:
-- One genotype (STRAIN/STOCK_ID) can have multiple alleles
-- One genotype can have multiple associated genes
-- Phenotypes (MPT_IDS) are stored as pipe-delimited lists with format: `phenotype label [MP:XXXXXXX]`
+The catalog is provided as a single denormalized CSV where each row represents a strain, but with one-to-many relationships embedded: a genotype (identified by STRAIN/STOCK_ID) can have multiple alleles and multiple associated genes, and phenotypes are stored as pipe-delimited lists of Mammalian Phenotype Ontology terms (e.g. `phenotype label [MP:XXXXXXX]`).
 
-## Preprocessing
+### Preprocessing
 
-The raw MMRRC catalog data is preprocessed using DuckDB (see `scripts/preprocess.py`) to normalize the denormalized structure into three separate CSV files:
+The denormalized catalog is normalized into three datasets before transformation:
 
-1. **genotypes.csv** (69,025 rows) - One row per unique genotype
-2. **allele_to_genotype.csv** (43,870 rows) - Allele-to-genotype associations
-3. **genotype_to_phenotype.csv** (46,006 rows) - Genotype-to-phenotype associations with exploded MP IDs
+1. **Genotypes** — Deduplicated by strain ID to produce one row per unique genotype
+2. **Allele-to-genotype** — Distinct pairs of MGI allele accession IDs and strain IDs, filtering out rows with no allele accession
+3. **Genotype-to-phenotype** — The pipe-delimited phenotype lists are exploded into individual MP term associations per genotype, with phenotype labels extracted from the structured text
 
-### Preprocessing Logic
+Duplicate relationships in the original catalog (e.g. the same genotype-allele pair appearing multiple times) are deduplicated during this step.
 
-**Genotypes**: Deduplicated by `STRAIN/STOCK_ID`, keeping the first occurrence of descriptive fields.
+## Genotype
 
-**Allele-to-Genotype**: Filters rows where `MGI_ALLELE_ACCESSION_ID` is not null, creating distinct allele-genotype pairs.
+Creates Genotype nodes for each unique mouse strain in the MMRRC catalog. All MMRRC strains are _Mus musculus_, so taxon is hardcoded.
 
-**Genotype-to-Phenotype**:
-- Extracts all MP IDs from the `MPT_IDS` field using regex: `MP:\\d+`
-- Unnests/explodes the pipe-delimited phenotype list into individual associations
-- Extracts phenotype labels by parsing text before each `[MP:XXXXXXX]` bracket
-
-## Transforms
-
-### 1. Genotype Nodes
-
-**Source**: `data/processed/genotypes.csv`
-
-**Transform**: `genotype`
-
-Creates Genotype nodes for each unique mouse strain in the MMRRC catalog.
-
-#### Biolink Mapping
+**Biolink Captured:**
 
 * **biolink:Genotype**
     * id: `MMRRC:{strain_id}` (already in format `MMRRC:XXXXXX-XXX`)
@@ -54,11 +36,6 @@ Creates Genotype nodes for each unique mouse strain in the MMRRC catalog.
     * in_taxon: `["NCBITaxon:10090"]` (Mus musculus - hardcoded)
     * in_taxon_label: `"Mus musculus"`
     * provided_by: `["infores:mmrrc"]`
-
-#### Filtering/Branching Logic
-
-- **No filtering**: All genotypes are included
-- **Taxon assignment**: All MMRRC strains are mouse (Mus musculus), so taxon is hardcoded
 
 #### Example Input
 
@@ -80,15 +57,11 @@ Genotype(
 )
 ```
 
-### 2. Genotype-to-Phenotype Associations
+## Genotype to Phenotype
 
-**Source**: `data/processed/genotype_to_phenotype.csv`
+Associations between genotypes and their observed phenotypes using Mammalian Phenotype Ontology (MP) terms. Rows with empty phenotype IDs or labels are filtered out.
 
-**Transform**: `genotype_to_phenotype`
-
-Creates associations between genotypes and their observed phenotypes using Mammalian Phenotype Ontology (MP) terms.
-
-#### Biolink Mapping
+**Biolink Captured:**
 
 * **biolink:GenotypeToPhenotypicFeatureAssociation**
     * id: Generated UUID
@@ -99,12 +72,6 @@ Creates associations between genotypes and their observed phenotypes using Mamma
     * primary_knowledge_source: `"infores:mmrrc"`
     * knowledge_level: `"knowledge_assertion"`
     * agent_type: `"manual_agent"`
-
-#### Filtering/Branching Logic
-
-- **Filter empty phenotype IDs**: Skip rows where `phenotype_id` is null or empty
-- **Filter empty phenotype labels**: Skip rows where label extraction failed (empty string)
-- **No branching**: All associations follow the same pattern
 
 #### Example Input
 
@@ -129,15 +96,11 @@ GenotypeToPhenotypicFeatureAssociation(
 )
 ```
 
-### 3. Allele-to-Genotype Associations
+## Allele to Genotype
 
-**Source**: `data/processed/allele_to_genotype.csv`
+Associations between MGI alleles and the MMRRC genotypes that carry them.
 
-**Transform**: `allele_to_genotype`
-
-Creates associations between MGI alleles and the MMRRC genotypes that carry them.
-
-#### Biolink Mapping
+**Biolink Captured:**
 
 * **biolink:GenotypeToVariantAssociation** (using Allele as a type of Variant)
     * id: Generated UUID
@@ -149,13 +112,7 @@ Creates associations between MGI alleles and the MMRRC genotypes that carry them
     * knowledge_level: `"knowledge_assertion"`
     * agent_type: `"manual_agent"`
 
-#### Filtering/Branching Logic
-
-- **Filter null alleles**: Skip rows where `allele_id` is null or empty
-- **Filter null genotypes**: Skip rows where `strain_id` is null or empty
-- **No branching**: All associations follow the same pattern
-
-#### Design Decision
+### Design Decision
 
 We use `GenotypeToVariantAssociation` with `has_sequence_variant` predicate rather than creating a separate `AlleleToGenotypeAssociation` type, as Biolink Model treats alleles as a type of sequence variant. The direction is: Genotype (subject) -> has_sequence_variant -> Allele (object), which allows us to express that this allele is part of/contributes to this genotype.
 
@@ -181,24 +138,6 @@ GenotypeToVariantAssociation(
     knowledge_level="knowledge_assertion",
     agent_type="manual_agent"
 )
-```
-
-## Data Quality Notes
-
-1. **Date Format Issues**: The `ACCEPTED_DATE` field contains invalid dates like `00/00/0000`, so all CSV columns are treated as VARCHAR during preprocessing
-2. **HTML in Strain Names**: Strain designations contain HTML formatting (`<i>`, `<sup>`) which is preserved in the name field
-3. **Missing Phenotype Labels**: Some phenotypes may have MP IDs but no associated labels due to regex extraction limitations
-4. **Duplicate Rows**: The original catalog has duplicate relationships (e.g., same genotype-allele pair multiple times), which are deduplicated during preprocessing using `DISTINCT`
-
-## Usage
-
-```bash
-just install       # Install dependencies
-just test          # Run tests
-just download      # Download source data
-just preprocess    # Preprocess raw data
-just transform-all # Run all transforms
-just run           # Full pipeline (test + transform-all)
 ```
 
 ## Citation
