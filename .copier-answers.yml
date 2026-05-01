@@ -9,5 +9,5 @@ license: BSD-3-Clause
 project_description: Monarch Initiative data ingest for MMRRC (Mutant Mouse Resource
     & Research Centers) - capturing allele to genotype associations, genotype nodes,
     and genotype to phenotype associations
-project_name: MMRRC Ingest
+project_name: mmrrc-ingest
 project_slug: mmrrc-ingest
