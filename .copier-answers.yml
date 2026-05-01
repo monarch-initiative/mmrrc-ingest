@@ -1,12 +1,11 @@
-# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 80f5f67
+_commit: b7f2804
 _src_path: gh:monarch-initiative/koza-ingest-template
 copyright_year: '2025'
 email: info@monarchinitiative.org
 full_name: Monarch Initiative
+github_handle: monarch-initiative
 github_org: monarch-initiative
 license: BSD-3-Clause
-min_python_version: '3.10'
 project_description: Monarch Initiative data ingest for MMRRC (Mutant Mouse Resource
     & Research Centers) - capturing allele to genotype associations, genotype nodes,
     and genotype to phenotype associations
