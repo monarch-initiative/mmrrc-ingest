@@ -24,9 +24,9 @@ install:
 
 # ============== Ingest Pipeline ==============
 
-# Full pipeline: test, download, preprocess, transform
+# Full pipeline: install, download, preprocess, transform, metadata, test
 [group('ingest')]
-run: test transform-all
+run: test transform-all metadata
 
 # Download source data using kghub-downloader
 [group('ingest')]
@@ -49,6 +49,11 @@ transform-all: download preprocess
             uv run koza transform {{PKG}}/$t.yaml
         fi
     done
+
+# Emit output/release-metadata.yaml describing this build's upstream sources and artifacts
+[group('ingest')]
+metadata:
+    uv run python scripts/write_metadata.py
 
 # Run specific transform
 [group('ingest')]
