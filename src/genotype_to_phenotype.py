@@ -27,12 +27,10 @@ def transform_record(
         list[GenotypeToPhenotypicFeatureAssociation]: A list containing a biolink association
 
     """
-    # Skip rows without required IDs
+    # Skip rows without required IDs. The phenotype label is best-effort
+    # metadata only and is not emitted, so a failed label extraction must not
+    # drop an otherwise-valid genotype-phenotype association.
     if not row.get("strain_id") or not row.get("phenotype_id"):
-        return []
-
-    # Skip rows with empty phenotype labels (failed extraction)
-    if not row.get("phenotype_label") or row["phenotype_label"].strip() == "":
         return []
 
     association = GenotypeToPhenotypicFeatureAssociation(

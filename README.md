@@ -1,6 +1,6 @@
 # MMRRC (Mutant Mouse Resource & Research Centers)
 
-The MMRRC is a national resource that archives and distributes genetically engineered mouse strains to the research community. This ingest captures genotype information, allele-to-genotype associations, and genotype-to-phenotype associations from the MMRRC catalog data.
+The MMRRC is a national resource that archives and distributes genetically engineered mouse strains to the research community. This ingest captures genotype nodes and allele-to-genotype, genotype-to-gene, and genotype-to-phenotype associations from the MMRRC catalog data.
 
 * [MMRRC Website](https://www.mmrrc.org)
 * [MMRRC Data Catalog](https://www.mmrrc.org/about/mmrrc_catalog_data.csv)
@@ -14,13 +14,16 @@ The catalog is provided as a single denormalized CSV where each row represents a
 
 ### Preprocessing
 
-The denormalized catalog is normalized into three datasets before transformation:
+The denormalized catalog is normalized into four datasets before transformation:
 
 1. **Genotypes** — Deduplicated by strain ID to produce one row per unique genotype
 2. **Allele-to-genotype** — Distinct pairs of MGI allele accession IDs and strain IDs, filtering out rows with no allele accession
-3. **Genotype-to-phenotype** — The pipe-delimited phenotype lists are exploded into individual MP term associations per genotype, with phenotype labels extracted from the structured text
+3. **Genotype-to-gene** — Distinct pairs of strain IDs and MGI gene accession IDs, with the strain's PubMed IDs attached. MMRRC identifies most strains by target gene rather than allele accession, so this covers the large gene-trap/targeted set that carries no allele
+4. **Genotype-to-phenotype** — The pipe-delimited phenotype lists are exploded into individual MP term associations per genotype, with phenotype labels extracted from the structured text
 
 Duplicate relationships in the original catalog (e.g. the same genotype-allele pair appearing multiple times) are deduplicated during this step.
+
+**Identifier normalization**: MMRRC accession columns contain dirty values (tab-prefixed CURIEs like `\tMGI:5638932`, wrong-namespace values like `GeneID:23671`). Every allele and gene identifier is normalized by extracting a canonical `MGI:<digits>` CURIE; values with no valid MGI CURIE are dropped rather than emitted as broken edges. PubMed IDs (`PMID: 123`) are normalized to bare `PMID:123` CURIEs.
 
 ## Genotype
 
@@ -31,7 +34,6 @@ Creates Genotype nodes for each unique mouse strain in the MMRRC catalog. All MM
 * **biolink:Genotype**
     * id: `MMRRC:{strain_id}` (already in format `MMRRC:XXXXXX-XXX`)
     * name: `strain_designation` - Full strain designation with genetic nomenclature
-    * description: Constructed from `strain_type` and genetic information
     * xref: `other_names` - Includes RRID identifiers
     * in_taxon: `["NCBITaxon:10090"]` (Mus musculus - hardcoded)
     * in_taxon_label: `"Mus musculus"`
@@ -139,6 +141,54 @@ GenotypeToVariantAssociation(
     agent_type="manual_agent"
 )
 ```
+
+## Genotype to Gene
+
+Associations between MMRRC genotypes and the MGI genes they target. MMRRC records a target gene (`MGI_GENE_ACCESSION_ID`) for most strains — including the large gene-trap/targeted set that has no allele accession — so this transform is the primary way these strains connect to genes.
+
+**Biolink Captured:**
+
+* **biolink:GenotypeToGeneAssociation**
+    * id: Generated UUID
+    * subject: `strain_id` (Genotype ID, e.g., `MMRRC:000002-UNC`)
+    * predicate: `biolink:related_to` (deliberately vague, matching the Alliance genotype→gene convention)
+    * object: `gene_id` (MGI Gene ID, e.g., `MGI:109392`)
+    * publications: the strain's `PUBMED_IDS`, normalized to `PMID:` CURIEs
+    * aggregator_knowledge_source: `["infores:monarchinitiative"]`
+    * primary_knowledge_source: `"infores:mmrrc"`
+    * knowledge_level: `"knowledge_assertion"`
+    * agent_type: `"manual_agent"`
+
+### Design Decision
+
+We use `GenotypeToGeneAssociation` with `biolink:related_to`, following the Alliance ingest convention (`kozahub/alliance-ingest`), which keeps the predicate intentionally vague because the strain→gene relationship in these catalogs is not a specific molecular one. MMRRC's PubMed IDs are recorded at the strain level (not per allele or phenotype), so they are attached as `publications` here as the strain's defining references.
+
+#### Example Input
+
+```csv
+strain_id,gene_id,gene_symbol,gene_name,pubmed_ids
+MMRRC:000002-UNC,MGI:109392,Esr2,estrogen receptor 2 (beta),PMID:9861029
+```
+
+#### Example Output
+
+```python
+GenotypeToGeneAssociation(
+    id="uuid:...",
+    subject="MMRRC:000002-UNC",
+    predicate="biolink:related_to",
+    object="MGI:109392",
+    publications=["PMID:9861029"],
+    aggregator_knowledge_source=["infores:monarchinitiative"],
+    primary_knowledge_source="infores:mmrrc",
+    knowledge_level="knowledge_assertion",
+    agent_type="manual_agent"
+)
+```
+
+## Not Ingested: Genotype model_of Disease
+
+The per-strain `getSDS` API exposes DOID annotations under `alterations[].doid_ids`, which is tempting as a source of `model_of` disease edges. On inspection these are **Disease Ontology gene→disease associations for the strain's target gene(s)**, not curated strain-as-model annotations: multi-gene deletion strains accumulate the union of every deleted gene's disease associations (one strain reached 241 diseases across ~230 genes), and 87% of the ~548k candidate edges come from such multi-gene strains. This is redundant with the `genotype→gene` edges above plus Monarch's existing gene→disease sources (strain→gene→disease is reachable by traversal), and `model_of` would misrepresent the relationship, so these are deliberately not ingested.
 
 ## Citation
 

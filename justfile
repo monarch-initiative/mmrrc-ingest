@@ -4,7 +4,7 @@
 PKG := "src"
 
 # Explicitly enumerate transforms (add new ingests here)
-TRANSFORMS := "genotype genotype_to_phenotype allele_to_genotype"
+TRANSFORMS := "genotype genotype_to_phenotype allele_to_genotype genotype_to_gene"
 
 # List all commands
 _default:
