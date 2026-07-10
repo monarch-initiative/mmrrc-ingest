@@ -70,3 +70,12 @@ def test_association_has_id(genotype_phenotype_association: GenotypeToPhenotypic
 def test_association_category(genotype_phenotype_association: GenotypeToPhenotypicFeatureAssociation) -> None:
     """Test association has correct biolink category"""
     assert "biolink:GenotypeToPhenotypicFeatureAssociation" in genotype_phenotype_association.category
+
+
+def test_missing_label_not_dropped() -> None:
+    """A failed phenotype-label extraction must not drop a valid association."""
+    koza_transform = KozaTransform(mappings={}, writer=PassthroughWriter(), extra_fields={})
+    row = {"strain_id": "MMRRC:000002-UNC", "phenotype_id": "MP:0000063", "phenotype_label": ""}
+    result = transform_record(koza_transform, row)
+    assert len(result) == 1
+    assert result[0].object == "MP:0000063"

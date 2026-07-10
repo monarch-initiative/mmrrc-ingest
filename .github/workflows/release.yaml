@@ -53,8 +53,9 @@ jobs:
             Automated release of MMRRC ingest data.
 
             ## Transforms included
-            - genotype - Genotype nodes (~69,025)
-            - genotype_to_phenotype - Genotype to phenotype associations (~46,006)
-            - allele_to_genotype - Allele to genotype associations (~43,870)
+            - genotype - Genotype nodes (~69,000)
+            - genotype_to_phenotype - Genotype to phenotype associations (~46,000)
+            - allele_to_genotype - Allele to genotype associations (~44,000)
+            - genotype_to_gene - Genotype to gene associations (~528,000)
           files: |
             output/*
