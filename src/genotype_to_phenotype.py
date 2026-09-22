@@ -4,7 +4,6 @@ Transform for MMRRC genotype-to-phenotype associations.
 Reads preprocessed genotype_to_phenotype.csv and creates GenotypeToPhenotypicFeatureAssociation edges.
 """
 
-import uuid
 from typing import Any
 
 import koza
@@ -34,7 +33,6 @@ def transform_record(
         return []
 
     association = GenotypeToPhenotypicFeatureAssociation(
-        id=f"uuid:{uuid.uuid4()}",
         subject=row["strain_id"],
         predicate="biolink:has_phenotype",
         object=row["phenotype_id"],

@@ -9,7 +9,6 @@ that carries no allele accession. Following the Alliance convention, the
 predicate is left deliberately vague (`biolink:related_to`).
 """
 
-import uuid
 from typing import Any
 
 import koza
@@ -40,7 +39,6 @@ def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list
     publications = row["pubmed_ids"].split("|") if row.get("pubmed_ids") else None
 
     association = GenotypeToGeneAssociation(
-        id=f"uuid:{uuid.uuid4()}",
         subject=row["strain_id"],
         predicate=predicate,
         object=row["gene_id"],
