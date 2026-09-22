@@ -4,7 +4,6 @@ Transform for MMRRC allele-to-genotype associations.
 Reads preprocessed allele_to_genotype.csv and creates GenotypeToVariantAssociation edges.
 """
 
-import uuid
 from typing import Any
 
 import koza
@@ -30,7 +29,6 @@ def transform_record(koza_transform: KozaTransform, row: dict[str, Any]) -> list
         return []
 
     association = GenotypeToVariantAssociation(
-        id=f"uuid:{uuid.uuid4()}",
         subject=row["strain_id"],
         predicate="biolink:has_sequence_variant",
         object=row["allele_id"],
